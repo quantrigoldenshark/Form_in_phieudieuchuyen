@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu điều chuyển hàng hóa - GOLDEN SHARK</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400;0,700;1,400&family=Beiruti:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --font-main: 'Afacad', sans-serif;
+            --font-number: 'Beiruti', sans-serif;
+            --font-size: 14px;
+            --margin-page: 7mm;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-main);
+            font-size: var(--font-size);
+            background-color: #f0f0f0;
+            line-height: 1.6; /* Tăng độ giãn dòng cho cân đối */
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: var(--margin-page);
+            margin: 10mm auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media print {
+            body { background: none; }
+            .page { margin: 0; box-shadow: none; width: 100%; }
+            .no-print { display: none; }
+            @page { size: A4 portrait; margin: 0; }
+        }
+
+        /* Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 80px;
+            color: rgba(220, 220, 220, 0.25);
+            font-weight: bold;
+            z-index: 0;
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Header */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 1;
+        }
+
+        .company-name {
+            font-weight: bold;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .header-divider {
+            border: none;
+            border-top: 2px solid black;
+            margin: 5px 0 15px 0;
+        }
+
+        /* Title Area */
+        .title-block {
+            text-align: center;
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+
+        .title-block h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 5px 40px;
+            margin-bottom: 12px;
+            z-index: 1;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: baseline;
+        }
+
+        .full-width { grid-column: span 2; }
+
+        .label {
+            font-weight: bold;
+            white-space: nowrap;
+            margin-right: 8px;
+            min-width: 130px;
+        }
+
+        .value {
+            border-bottom: 1px dotted #999;
+            flex-grow: 1;
+            min-height: 22px;
+        }
+
+        /* Bảng hàng hóa tối ưu cột */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            z-index: 1;
+        }
+
+        table th, table td {
+            border: 1px solid black;
+            padding: 8px 5px;
+            overflow-wrap: break-word;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Định dạng các cột cụ thể */
+        .col-stt { width: 35px; text-align: center; }
+        .col-code { width: 90px; text-align: left; white-space: nowrap; } /* Không ngắt dòng */
+        .col-name { width: auto; text-align: left; }
+        .col-unit { width: 50px; text-align: center; }
+        .col-qty { width: 65px; text-align: right; font-family: var(--font-number); font-weight: 600; }
+        .col-note { width: 130px; text-align: left; }
+
+        tr { page-break-inside: avoid; }
+
+        /* Ghi chú 2 dòng */
+        .note-section {
+            margin-top: 15px;
+            z-index: 1;
+        }
+
+        .note-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+        }
+
+        .note-content {
+            display: block;
+            width: 100%;
+            line-height: 28px;
+            background-image: linear-gradient(transparent 27px, #999 28px);
+            background-size: 100% 28px;
+            min-height: 56px;
+        }
+
+        /* Chữ ký */
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .sig-box { width: 19%; }
+        .sig-box h4 { 
+            margin: 0; 
+            font-size: 14px;
+            height: 45px; /* Tạo khoảng cách với dòng ký */
+        }
+        .sig-box i {
+            display: block;
+            margin-top: 50px; /* Tăng khoảng cách để người ký viết tên */
+            font-size: 13px;
+        }
+
+        /* Số trang */
+        .page-number {
+            position: absolute;
+            bottom: 5mm;
+            right: 10mm;
+            font-size: 12px;
+            font-family: var(--font-number);
+        }
+        .page-number:after { content: "Trang " counter(page); }
+
+        .controls { position: fixed; top: 20px; right: 20px; z-index: 100; }
+        .btn {
+            padding: 12px 24px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: var(--font-main);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls no-print">
+        <button class="btn" onclick="window.print()">XUẤT PHIẾU PDF / IN</button>
+    </div>
+
+    <div class="page">
+        <div id="watermark" class="watermark">GOLDEN SHARK</div>
+
+        <!-- Header -->
+        <div class="header-container">
+            <div class="header-left">
+                <div class="company-name">CÔNG TY TNHH TM&DV GOLDEN SHARK</div>
+                <div class="system-name">Hệ thống quản lý kho nội bộ</div>
+            </div>
+            <div class="header-right">
+                <div>Mã hồ sơ: <b style="font-family: var(--font-number);">KHO-DC-2026-L1</b></div>
+                <div>Phân loại: <b id="display_phanloai"></b></div>
+            </div>
+        </div>
+        <hr class="header-divider">
+
+        <!-- Title -->
+        <div class="title-block">
+            <h1>PHIẾU ĐIỀU CHUYỂN HÀNG HÓA</h1>
+            <div class="doc-number-row">
+                Số chứng từ: <b id="display_sochungtu"></b>
+            </div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="label">Ngày chứng từ:</span>
+                <span id="display_ngaychungtu" class="value" style="font-family: var(--font-number);"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">Ngày nhận:</span>
+                <span id="display_ngaynhanhang" class="value" style="font-family: var(--font-number);"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">Nhà hàng giao:</span>
+                <span id="display_nhahanggiao" class="value" style="font-weight: bold;"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">Nhà hàng nhận:</span>
+                <span id="display_nhahangnhan" class="value" style="font-weight: bold;"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">Người giao nhận:</span>
+                <span id="display_nguoigiaonhan" class="value"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">Trạng thái:</span>
+                <span class="value" style="font-style: italic; color: #666;">0.Pending</span>
+            </div>
+            <div class="info-item full-width">
+                <span class="label">Thông tin vận chuyển:</span>
+                <span id="display_thongtinvanchuyen" class="value"></span>
+            </div>
+            <div class="info-item full-width">
+                <span class="label">Nội dung:</span>
+                <span id="display_noidung" class="value"></span>
+            </div>
+        </div>
+
+        <!-- Bảng hàng hóa -->
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-stt">STT</th>
+                    <th class="col-code">Mã hàng</th>
+                    <th class="col-name">Tên hàng</th>
+                    <th class="col-unit">ĐVT</th>
+                    <th class="col-qty">SL Đặt</th>
+                    <th class="col-qty">SL Giao</th>
+                    <th class="col-qty">SL Nhận</th>
+                    <th class="col-note">Ghi chú</th>
+                </tr>
+            </thead>
+            <tbody id="product-body">
+                <!-- Data render -->
+            </tbody>
+        </table>
+
+        <!-- Ghi chú dưới bảng -->
+        <div class="note-section">
+            <div class="note-row">
+                <span class="label">Ghi chú bên giao:</span>
+                <div id="display_ghichubengiao" class="note-content"></div>
+            </div>
+            <div class="note-row">
+                <span class="label">Ghi chú bên nhận:</span>
+                <div id="display_ghichubennhan" class="note-content"></div>
+            </div>
+        </div>
+
+        <!-- Chữ ký -->
+        <div class="signature-section">
+            <div class="sig-box"><h4>Thủ kho bên giao</h4><i>(Ký, họ tên)</i></div>
+            <div class="sig-box"><h4>Quản lý bên giao</h4><i>(Ký, họ tên)</i></div>
+            <div class="sig-box"><h4>Lái xe</h4><i>(Ký, họ tên)</i></div>
+            <div class="sig-box"><h4>Thủ kho bên nhận</h4><i>(Ký, họ tên)</i></div>
+            <div class="sig-box"><h4>Quản lý bên nhận</h4><i>(Ký, họ tên)</i></div>
+        </div>
+
+        <div class="page-number"></div>
+    </div>
+
+    <script>
+        const demoData = {
+            phanloai: "Ngoài cơ sở",
+            sochungtu: "BTT ➡️ BY1 | DC.301225.001",
+            ngaychungtu: "31/12/2025",
+            ngaynhanhang: "31/12/2025",
+            nhahanggiao: "BTT",
+            nhahangnhan: "BY1",
+            noidung: "Điều chuyển hàng từ BTT đến BY1 - ngày 31/12/2025",
+            nguoigiaonhan: "Nguyễn Văn Tuấn",
+            thongtinvanchuyen: "Ô tô BKS 30K48830",
+            ghichubengiao: "Hàng đóng thùng bảo ôn sạch sẽ, yêu cầu vận chuyển nhẹ tay tránh đổ vỡ hàng bên trong.",
+            ghichubennhan: "Đã nhận và kiểm đếm đủ số lượng thực tế.",
+            items: [
+                { stt: 1, ma: "MT-00192", ten: "Thịt ba chỉ bò Mỹ thái lát đặc biệt (Khay 500g)", dvt: "Khay", sl_dat: 50, sl_giao: 50, sl_nhan: 50, note: "" },
+                { stt: 2, ma: "RAU-0022", ten: "Xà lách lolo xanh thủy canh tiêu chuẩn VietGap", dvt: "Kg", sl_dat: 15.5, sl_giao: 15.5, sl_nhan: 15.5, note: "Đóng túi 1kg" },
+                { stt: 3, ma: "GIAVI-09", ten: "Sốt chấm đặc biệt Golden Shark chai 1L", dvt: "Chai", sl_dat: 10, sl_giao: 10, sl_nhan: 10, note: "" }
+            ]
+        };
+
+        function init() {
+            const params = new URLSearchParams(window.location.search);
+            const hasUrlData = params.has('sochungtu');
+            const data = hasUrlData ? Object.fromEntries(params.entries()) : demoData;
+            
+            const watermarkEl = document.getElementById('watermark');
+            watermarkEl.innerText = hasUrlData ? "GOLDEN SHARK" : "GOLDEN SHARK DEMO";
+
+            const fields = ['phanloai', 'sochungtu', 'ngaychungtu', 'ngaynhanhang', 'nhahanggiao', 'nhahangnhan', 'noidung', 'nguoigiaonhan', 'thongtinvanchuyen', 'ghichubengiao', 'ghichubennhan'];
+            fields.forEach(f => {
+                const el = document.getElementById('display_' + f);
+                if (el) el.innerText = data[f] || '';
+            });
+
+            const tbody = document.getElementById('product-body');
+            let items = [];
+            try {
+                items = hasUrlData ? JSON.parse(data.items) : demoData.items;
+            } catch(e) { items = demoData.items; }
+
+            items.forEach(item => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="col-stt">${item.stt}</td>
+                        <td class="col-code">${item.ma || item.Ma_Hang || ''}</td>
+                        <td class="col-name">${item.ten || item.Ten_Hang || ''}</td>
+                        <td class="col-unit">${item.dvt || item.DVT || ''}</td>
+                        <td class="col-qty">${item.sl_dat || item.SL_Dat || 0}</td>
+                        <td class="col-qty">${item.sl_giao || item.SL_Giao || 0}</td>
+                        <td class="col-qty">${item.sl_nhan || item.SL_Nhan || 0}</td>
+                        <td class="col-note">${item.note || item.Ghi_Chu || ''}</td>
+                    </tr>
+                `;
+            });
+
+            // Fill dòng trống để đảm bảo độ dài form tối thiểu
+            if (items.length < 8) {
+                for(let i = items.length + 1; i <= 8; i++) {
+                    tbody.innerHTML += `<tr><td class="col-stt">${i}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+                }
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
