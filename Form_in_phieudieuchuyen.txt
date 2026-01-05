@@ -377,10 +377,17 @@
                 items = hasUrlData ? JSON.parse(data.items) : demoData.items;
             } catch(e) { items = demoData.items; }
 
-            items.forEach(item => {
+            // LOGIC SẮP XẾP ALPHABET THEO TÊN HÀNG
+            items.sort((a, b) => {
+                const nameA = (a.ten || a.Ten_Hang || "").toString().toLowerCase();
+                const nameB = (b.ten || b.Ten_Hang || "").toString().toLowerCase();
+                return nameA.localeCompare(nameB, 'vi');
+            });
+
+            items.forEach((item, index) => {
                 tbody.innerHTML += `
                     <tr>
-                        <td class="col-stt">${item.stt}</td>
+                        <td class="col-stt">${index + 1}</td>
                         <td class="col-code">${item.ma || item.Ma_Hang || ''}</td>
                         <td class="col-name">${item.ten || item.Ten_Hang || ''}</td>
                         <td class="col-unit">${item.dvt || item.DVT || ''}</td>
